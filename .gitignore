@@ -1,0 +1,11 @@
+env/
+__pycache__/
+*.pyc
+*.pyo
+models/saved_model/
+data/*.csv
+*.h5
+*.pkl
+.env
+*.db
+.DS_Store
