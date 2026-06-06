@@ -52,7 +52,7 @@ You are a cybersecurity analyst. Write a short, professional incident summary re
 
 - Attack Type: {threat_data.get('attack_type', 'Unknown')}
 - Severity Level: {threat_data.get('severity', 'Unknown')}
-- Confidence Score: {threat_data.get('confidence', 0):.2%}
+- Confidence Score: {threat_data.get('confidence', 0):.2f}%
 - Source IP Address: {threat_data.get('source_ip', 'Unknown')}
 - Detection Time: {threat_data.get('timestamp', 'Unknown')}
 - Recommended Action: {threat_data.get('recommended_action', 'Under investigation')}
@@ -68,7 +68,7 @@ Start directly with the summary — no titles or headers needed.
             return _fallback_summary(threat_data)
 
         response = client.chat.completions.create(
-            model="mixtral-8x7b-32768",
+            model="llama-3.1-8b-instant",
             messages=[
                 {
                     "role": "system",
