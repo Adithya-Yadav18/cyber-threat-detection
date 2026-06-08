@@ -106,51 +106,82 @@ def save_to_mongodb(result: dict):
 # ── Single threat analysis pipeline ──────────────────────────────────────────
 def run_threat_pipeline(attack_type=None, use_crewai=False):
     """
-    Run one full threat detection cycle.
-    attack_type: force a specific attack for testing
-    use_crewai: use full CrewAI agent conversation (slower but shows agent thinking)
+    Run one full threat detection cycle with all 5 agents.
     """
     print("\n" + "="*60)
     print(f"  CyberShield AI - Threat Detection Cycle")
     print(f"  Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("="*60)
 
-    # ── Step 1: Monitor Agent captures traffic ────────────────────────────────
+    # ── Agent 1: Monitor ─────────────────────────────────────────
     print("\n[AGENT 1] Traffic Monitor Agent — Capturing traffic...")
+    from agents.monitor_agent import generate_simulated_traffic
     traffic_sample = generate_simulated_traffic(attack_type)
     print(f"  Source IP : {traffic_sample['_source_ip']}")
     print(f"  Protocol  : {traffic_sample['_protocol']}")
     print(f"  Simulated : {traffic_sample['_simulated_type']}")
 
-    # ── Step 2: Detection Agent classifies threat ─────────────────────────────
+    # ── Agent 2: Detection ───────────────────────────────────────
     print("\n[AGENT 2] Threat Detection Agent — Running ML ensemble...")
+    from agents.detection_agent import analyze_traffic, format_threat_report
     result = analyze_traffic(traffic_sample)
     print(format_threat_report(result))
 
-    # ── Step 3: Save to MongoDB ───────────────────────────────────────────────
-    save_to_mongodb(result)
+    if result["is_threat"]:
 
-    # ── Step 4: CrewAI conversation (optional, for demo) ─────────────────────
-    if use_crewai and result["is_threat"]:
-        print("\n[CREWAI] Activating agent collaboration...")
+        # ── Agent 3: Priority ────────────────────────────────────
+        print("\n[AGENT 3] Alert Priority Agent — Scoring severity...")
+        from agents.priority_agent import calculate_priority
+        priority = calculate_priority(
+            result["attack_type"],
+            result["confidence"] / 100
+        )
+        result.update(priority)
+        print(f"  Priority Score : {priority['priority_score']}")
+        print(f"  Severity       : {priority['severity']}")
+        print(f"  Action         : {priority['recommended_action']}")
+
+        # ── Agent 4: Explainability ──────────────────────────────
+        print("\n[AGENT 4] Explainability Agent — Analyzing features...")
         try:
-            monitor_agent   = create_monitor_agent()
-            detection_agent = create_detection_agent()
-
-            monitor_task   = create_monitor_task(monitor_agent, traffic_sample)
-            detection_task = create_detection_task(detection_agent, result)
-
-            crew = Crew(
-                agents=[monitor_agent, detection_agent],
-                tasks=[monitor_task, detection_task],
-                process=Process.sequential,
-                verbose=True
-            )
-            crew_output = crew.kickoff()
-            print("\n[CREWAI OUTPUT]")
-            print(crew_output)
+            from agents.explainability_agent import explain_threat
+            explanation = explain_threat(result)
+            result["explanation"] = explanation
+            print(f"  Explanation generated.")
         except Exception as e:
-            print(f"[!] CrewAI conversation error: {e}")
+            print(f"  [!] Explainability skipped: {e}")
+            result["explanation"] = {}
+
+        # ── Agent 5: Response ────────────────────────────────────
+        print("\n[AGENT 5] Incident Response Agent — Generating response...")
+        try:
+            from utils.groq_summary import generate_incident_summary
+            summary = generate_incident_summary(result)
+            result["ai_summary"] = summary
+            print(f"  AI Summary: {summary[:100]}...")
+        except Exception as e:
+            print(f"  [!] Groq summary skipped: {e}")
+            result["ai_summary"] = "Summary unavailable."
+
+        # ── Logger ───────────────────────────────────────────────
+        print("\n[UTIL] Logger — Saving threat record...")
+        try:
+            from utils.logger import log_threat
+            log_threat(result)
+        except Exception as e:
+            print(f"  [!] Logger error: {e}")
+
+        # ── Email Alert ──────────────────────────────────────────
+        if priority.get("severity") in ["Critical", "High"]:
+            print("\n[UTIL] Emailer — Sending alert...")
+            try:
+                from utils.emailer import send_threat_alert
+                send_threat_alert(result)
+            except Exception as e:
+                print(f"  [!] Email error: {e}")
+
+    # ── Save to database ─────────────────────────────────────────
+    save_to_mongodb(result)
 
     return result
 
