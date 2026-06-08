@@ -1,0 +1,2 @@
+2026-06-07 16:20:13 — WARNING — THREAT DETECTED | Type: DDoS | Severity: Critical | Confidence: 9500.00% | Source IP: 192.168.1.1 | Action: Block source IP immediately, isolate affected systems, notify security team
+2026-06-07 16:20:55 — WARNING — THREAT DETECTED | Type: DDoS | Severity: Critical | Confidence: 9500.00% | Source IP: 192.168.1.1 | Action: None
