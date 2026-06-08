@@ -3,7 +3,7 @@
 A real-time cybersecurity threat detection system built with ML models, autonomous AI agents, and a live monitoring dashboard.
 
 ## 👥 Team
-- **Yujiro** — Senior Developer (ML models, core agents, FastAPI backend, deployment)
+- **Adithya** — Senior Developer (ML models, core agents, FastAPI backend, deployment)
 - **Sarvani** — Junior Developer (supporting agents, dashboard, alerts, AI summaries)
 
 ## 🔍 What This System Does
@@ -62,7 +62,7 @@ cyber-threat-detection/
 ## 🚀 Getting Started
 ```bash
 # Clone the repository
-git clone https://github.com/Sarvani73/cyber-threat-detection.git
+git clone https://github.com/Adithya-Yadav18/cyber-threat-detection.git
 cd cyber-threat-detection
 
 # Create and activate conda environment
@@ -83,4 +83,4 @@ pip install -r requirements.txt
 - Live / Simulation mode toggle
 
 ## 🔄 Current Status
-> Project is currently under active development as part of a CIS internship.
+> Project is complete and deployed. Live dashboard available at https://cybershield-agent.streamlit.app
